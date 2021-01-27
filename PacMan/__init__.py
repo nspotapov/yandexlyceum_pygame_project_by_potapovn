@@ -1,13 +1,15 @@
 from .game_control import GameControl
-from .main_menu import MainMenu
 from .button import Button
 from .program_states import ProgramState
 from .board import Board
+from .tiles import PacManTile
+from .sprites import PacManSprite
 
 __all__ = [
     "GameControl",
-    "MainMenu",
     "Button",
     "ProgramState",
-    "Board"
+    "Board",
+    "PacManTile",
+    "PacManSprite"
 ]
