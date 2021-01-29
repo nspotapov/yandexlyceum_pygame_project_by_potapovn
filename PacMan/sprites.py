@@ -1,3 +1,4 @@
+from settings import *
 import pygame
 import os
 
@@ -16,11 +17,24 @@ def load_image(name, color_key=None):
         image.set_colorkey(color_key)
     else:
         image = image.convert_alpha()
+
     return image
 
 
+def cut_image(image: pygame.image):
+    images_by_directions = {'right': [],
+                            'left': [],
+                            'up': [],
+                            'down': []}
+    for i in range(4):
+        images_by_directions.append(image.get_rect((i * SPRITE_SIZE, 0,
+                                                    (i + 1) * SPRITE_SIZE, SPRITE_SIZE)))
+
+
 class PacManSprite(pygame.sprite.Sprite):
-    pass
+    def __init__(self, image, *group):
+        super(PacManSprite, self).__init__(*group)
+        self.image = load_image(image)
 
 
 class Bomb(pygame.sprite.Sprite):
