@@ -1,7 +1,7 @@
 import pygame
 from pygame.locals import *
 from settings import *
-from .board_objects import Entity, Directions
+from .board_objects import Entity, Directions, Ghost, PacMan
 from .board import Board
 from .program_states import ProgramState
 
@@ -45,10 +45,31 @@ class GameControl:
         img.set_clip(pygame.Rect(0, 0, 128, 16))
         sprite = img.subsurface(img.get_clip())
 
-        self.player = Entity(self.screen, self.board, sprite,
+        self.player = PacMan(self.screen, self.board, sprite,
                              0, CELL_SIZE * 12 + 2 * SPACE_BETWEEN, self)
 
+        img.set_clip(pygame.Rect(0, 16, 128, 32))
+        sprite = img.subsurface(img.get_clip())
+        self.one = Ghost(self.screen, self.board, sprite,
+                             16, CELL_SIZE * 12 + 2 * SPACE_BETWEEN, self)
+        img.set_clip(pygame.Rect(0, 32, 128, 48))
+        sprite = img.subsurface(img.get_clip())
+        self.two = Ghost(self.screen, self.board, sprite,
+                             32, CELL_SIZE * 12 + 2 * SPACE_BETWEEN, self)
+        img.set_clip(pygame.Rect(0, 48, 128, 64))
+        sprite = img.subsurface(img.get_clip())
+        self.three = Ghost(self.screen, self.board, sprite,
+                             48, CELL_SIZE * 12 + 2 * SPACE_BETWEEN, self)
+        img.set_clip(pygame.Rect(0, 64, 128, 80))
+        sprite = img.subsurface(img.get_clip())
+        self.four = Ghost(self.screen, self.board, sprite,
+                             64, CELL_SIZE * 12 + 2 * SPACE_BETWEEN, self)
+
         self.game_objects.append(self.player)
+        self.game_objects.append(self.one)
+        self.game_objects.append(self.two)
+        self.game_objects.append(self.three)
+        self.game_objects.append(self.four)
 
     def run(self):
         """Главный цикл игры"""
@@ -127,7 +148,10 @@ class GameControl:
         for game_object in self.game_objects:
             if self.game_state == ProgramState.IN_GAME:
                 if isinstance(game_object, Entity):
+                    if isinstance(game_object, Ghost):
+                        game_object.update_direction()
                     game_object.move()
+
             game_object.render()
 
     def score_text_render(self):

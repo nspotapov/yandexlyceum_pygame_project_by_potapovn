@@ -1,4 +1,5 @@
 import pygame
+import random
 from settings import *
 
 
@@ -57,22 +58,24 @@ class Entity:
             (x + CELL_SIZE - c, y + CELL_SIZE - c),
             (x + c, y + CELL_SIZE - c)
         ]
-
-        colors = [self.screen.get_at((int(a), int(b)))[:-1] in [BACKGROUND_COLOR,
-                                                                MEALS_COLOR] for a, b in points]
+        try:
+            colors = [self.screen.get_at((int(a), int(b)))[:-1] in [BACKGROUND_COLOR,
+                                                                    MEALS_COLOR] for a, b in points]
+        except Exception:
+            colors = [False]
         # for x1, y1 in points:
         #     pygame.draw.circle(self.screen, 'white', (x1, y1), 2)
         # print(colors)
         if not all(colors):
             self.direction = Directions.STAY
         else:
-
-            col, row = self.board.get_cords(x, y)
-            if self.board.get_value(row, col) == 0:
-                self.board.set_value(row, col, 5)
-                self.control.current_score += 1
-                self.control.maximum_score = max(self.control.maximum_score,
-                                                 self.control.current_score)
+            if isinstance(self, PacMan):
+                col, row = self.board.get_cords(x, y)
+                if self.board.get_value(row, col) == 0:
+                    self.board.set_value(row, col, 5)
+                    self.control.current_score += 1
+                    self.control.maximum_score = max(self.control.maximum_score,
+                                                     self.control.current_score)
             self.x = x
             self.y = y
 
@@ -105,6 +108,15 @@ class Entity:
 class Ghost(Entity):
     def __init__(self, *args):
         super(Ghost, self).__init__(*args)
+        self.velocity = 20 / FPS
+
+    def update_direction(self):
+        print('tt')
+        if self.direction == Directions.STAY:
+            self.direction = random.choice([Directions.UP,
+                                            Directions.DOWN,
+                                            Directions.LEFT,
+                                            Directions.RIGHT])
 
 
 class PacMan(Entity):
