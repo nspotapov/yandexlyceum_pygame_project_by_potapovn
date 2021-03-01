@@ -111,7 +111,6 @@ class Ghost(Entity):
         self.velocity = 20 / FPS
 
     def update_direction(self):
-        print('tt')
         if self.direction == Directions.STAY:
             self.direction = random.choice([Directions.UP,
                                             Directions.DOWN,
