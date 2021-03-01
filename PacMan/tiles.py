@@ -9,11 +9,11 @@ colors = {
 }
 
 
-class PacManTile:
+class Tile:
     def __init__(self, tile_id):
         self.tile_id = tile_id
         self.color = colors.get(tile_id, BACKGROUND_COLOR)
 
     def render(self, screen, x, y):
         pygame.draw.rect(screen, self.color,
-                         (x, y, CELL_SIZE, CELL_SIZE))
+                         (x, y, MIN_CELL_SIZE, MIN_CELL_SIZE))

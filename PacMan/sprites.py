@@ -26,24 +26,21 @@ def cut_image(image: pygame.image):
                             'left': [],
                             'up': [],
                             'down': []}
-    for i in range(4):
-        images_by_directions.append(image.get_rect((i * SPRITE_SIZE, 0,
-                                                    (i + 1) * SPRITE_SIZE, SPRITE_SIZE)))
+
+    for i, direction in enumerate(images_by_directions.keys()):
+        images_by_directions[direction] = (
+            image.get_rect((i * SPRITE_SIZE, 0,
+                            (i + 1) * SPRITE_SIZE, SPRITE_SIZE)),
+
+            image.get_rect(((i + 1) * SPRITE_SIZE, 0,
+                            (i + 2) * SPRITE_SIZE, SPRITE_SIZE))
+        )
+    return images_by_directions
 
 
-class PacManSprite(pygame.sprite.Sprite):
+class Sprite(pygame.sprite.Sprite):
     def __init__(self, image, *group):
-        super(PacManSprite, self).__init__(*group)
+        super(Sprite, self).__init__(*group)
         self.image = load_image(image)
-
-
-class Bomb(pygame.sprite.Sprite):
-    # image = load_image("bomb.png")
-
-    def __init__(self, *group):
-        super().__init__(*group)
-        self.image = Bomb.image
-        self.rect = self.image.get_rect()
-
-    def update(self):
-        pass
+        self.images_by_directions = cut_image(self.image)
+        self.images_by_directions['up'][0].show()

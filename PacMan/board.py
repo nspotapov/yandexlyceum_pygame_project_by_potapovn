@@ -1,51 +1,52 @@
-from settings import GAME_BOARD
-from settings import CELL_SIZE
-from .tiles import PacManTile
+import pygame
+from settings import *
+
+colors = {
+    4: BACKGROUND_COLOR,
+    1: WALLS_COLOR,
+    2: DOOR_COLOR,
+    0: MEALS_COLOR
+}
 
 
 class Board:
-    """Класс клеточного поля игры"""
+    def __init__(self, game_board, screen, x, y):
+        self.game_board = game_board
+        self.screen = screen
+        self.x = x
+        self.y = y
 
-    def __init__(self, x=0, y=0):
-        self.left_top_x = x
-        self.left_top_y = y
-        self.current_board_state = GAME_BOARD.copy()
-        self.rows_count = len(self.current_board_state)
-        self.cols_count = len(self.current_board_state[0])
+    def get_cords(self, x, y):
+        x, y = x, y
+        height = len(self.game_board) * CELL_SIZE
+        width = len(self.game_board[0]) * CELL_SIZE
 
-        self.initialize_tiles()
+        col, row = int(((y - self.y) * BOARD_ROWS) / height), \
+                   int(((x - self.x) * BOARD_COLS) / width)
 
-    def get_tile_id(self, row, col):
-        """Вохвращает id тайла на карте с координатами [row][col]"""
-        return self.current_board_state[row][col]
+        return row, col
 
-    def set_tile_id(self, row, col, tile_id):
-        """Устанавливает id тайла на карту с координатами [row][col]"""
-        self.current_board_state[row][col] = tile_id
+    def get_value(self, row, col):
+        try:
+            value = self.game_board[row][col]
+            return value
+        except Exception:
+            return 5
 
-    def get_current_board_state(self):
-        """Возвращает текущее состояние карты"""
-        return self.current_board_state.copy()
+    def set_value(self, row, col, value):
+        self.game_board[row][col] = value
 
-    def render(self, screen):
-        """Рисует поле на холсте screen"""
-        for i in range(len(self.current_board_state)):
-            for j in range(len(self.current_board_state[i])):
-                self.current_board_state[i][j] \
-                    .render(screen,
-                            self.left_top_x + j * CELL_SIZE,
-                            self.left_top_y + i * CELL_SIZE)
-
-    def get_board_width(self):
-        """Возвращает ширину поля"""
-        return self.cols_count * CELL_SIZE
-
-    def get_board_height(self):
-        """Возврашает высоту поля"""
-        return self.rows_count * CELL_SIZE
-
-    def initialize_tiles(self):
-        for i in range(self.rows_count):
-            for j in range(self.cols_count):
-                tile_id = self.current_board_state[i][j]
-                self.current_board_state[i][j] = PacManTile(tile_id)
+    def render(self):
+        screen = self.screen
+        game_board = self.game_board
+        for i, row in enumerate(game_board):
+            for j, value in enumerate(row):
+                x = j * CELL_SIZE + self.x
+                y = i * CELL_SIZE + self.y
+                w = h = CELL_SIZE
+                if value:
+                    pygame.draw.rect(screen, colors.get(value, BACKGROUND_COLOR),
+                                     (x, y, w, h))
+                else:
+                    pygame.draw.circle(screen, MEALS_COLOR, (x + CELL_SIZE / 2, y + CELL_SIZE / 2),
+                                       2)
