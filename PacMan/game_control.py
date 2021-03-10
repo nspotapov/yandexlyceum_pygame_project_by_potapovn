@@ -1,18 +1,22 @@
 import pygame
 from pygame.locals import *
 from settings import *
-from .board_objects import Entity, Directions, Ghost, PacMan
-from .board import Board
+from .board_objects import Directions
 from .program_states import ProgramState
+from .sprites import Entity, Animated
 
 BLINK_EVENT = pygame.USEREVENT + 1
+
+board_x = 0
+board_y = 2 * FONT_SIZE + 3 * SPACE_BETWEEN
 
 
 class GameControl:
     def __init__(self):
         self.game_state = ProgramState.START
-        self.current_window = None
         self.game_objects = []
+
+        self.all_sprites = pygame.sprite.Group()
 
         self.current_score = 0
         self.maximum_score = 0
@@ -37,39 +41,26 @@ class GameControl:
         self.clock = pygame.time.Clock()
         pygame.time.set_timer(BLINK_EVENT, 500)
 
-        self.board = Board(INITIAL_GAME_BOARD, self.screen, 0,
-                                       2 * (FONT_SIZE + SPACE_BETWEEN))
+        images = pygame.image.load('resources/assets/sprites.png')
 
-        self.game_objects.append(self.board)
-        img = pygame.image.load('resources/assets/sprites.png')
-        img.set_clip(pygame.Rect(0, 0, 128, 16))
-        sprite = img.subsurface(img.get_clip())
+        for i in range(len(INITIAL_GAME_BOARD)):
+            for j in range(len(INITIAL_GAME_BOARD[0])):
+                value = INITIAL_GAME_BOARD[i][j]
+                image = pygame.surface.Surface((CELL_SIZE,
+                                                CELL_SIZE))
+                if value == 1:
+                    pygame.draw.rect(image, WALLS_COLOR, (0, 0, CELL_SIZE, CELL_SIZE))
 
-        self.player = PacMan(self.screen, self.board, sprite,
-                             0, CELL_SIZE * 12 + 2 * SPACE_BETWEEN, self)
+                    temp_sprite = Entity(self.all_sprites, image)
+                    temp_sprite.rect.x = j * CELL_SIZE + board_x
+                    temp_sprite.rect.y = i * CELL_SIZE + board_y
 
-        img.set_clip(pygame.Rect(0, 16, 128, 32))
-        sprite = img.subsurface(img.get_clip())
-        self.one = Ghost(self.screen, self.board, sprite,
-                             16, CELL_SIZE * 12 + 2 * SPACE_BETWEEN, self)
-        img.set_clip(pygame.Rect(0, 32, 128, 48))
-        sprite = img.subsurface(img.get_clip())
-        self.two = Ghost(self.screen, self.board, sprite,
-                             32, CELL_SIZE * 12 + 2 * SPACE_BETWEEN, self)
-        img.set_clip(pygame.Rect(0, 48, 128, 64))
-        sprite = img.subsurface(img.get_clip())
-        self.three = Ghost(self.screen, self.board, sprite,
-                             48, CELL_SIZE * 12 + 2 * SPACE_BETWEEN, self)
-        img.set_clip(pygame.Rect(0, 64, 128, 80))
-        sprite = img.subsurface(img.get_clip())
-        self.four = Ghost(self.screen, self.board, sprite,
-                             64, CELL_SIZE * 12 + 2 * SPACE_BETWEEN, self)
+                elif value == 3:
+                    rect = pygame.Rect((0, 0, CELL_SIZE * 4, CELL_SIZE))
+                    image = images.subsurface(rect)
 
-        self.game_objects.append(self.player)
-        self.game_objects.append(self.one)
-        self.game_objects.append(self.two)
-        self.game_objects.append(self.three)
-        self.game_objects.append(self.four)
+                    temp_sprite = Animated(self.all_sprites, image)
+                self.all_sprites.add(temp_sprite)
 
     def run(self):
         """Главный цикл игры"""
@@ -145,14 +136,8 @@ class GameControl:
         pygame.quit()
 
     def render(self):
-        for game_object in self.game_objects:
-            if self.game_state == ProgramState.IN_GAME:
-                if isinstance(game_object, Entity):
-                    if isinstance(game_object, Ghost):
-                        game_object.update_direction()
-                    game_object.move()
-
-            game_object.render()
+        self.all_sprites.draw(self.screen)
+        self.all_sprites.update()
 
     def score_text_render(self):
         text = self.font.render('SCORE', True, FONT_COLOR)

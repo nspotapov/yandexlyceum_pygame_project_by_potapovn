@@ -17,21 +17,21 @@ class Board:
         self.y = y
 
     def get_cords(self, x, y):
-        x, y = x, y
+        x, y = x + CELL_SIZE / 2, y + CELL_SIZE / 2
+
+        pygame.draw.circle(self.screen, 'red', (x, y), 3)
         height = len(self.game_board) * CELL_SIZE
         width = len(self.game_board[0]) * CELL_SIZE
 
-        col, row = int(((y - self.y) * BOARD_ROWS) / height), \
+        row, col = int(((y - self.y) * BOARD_ROWS) / height), \
                    int(((x - self.x) * BOARD_COLS) / width)
 
         return row, col
 
     def get_value(self, row, col):
-        try:
-            value = self.game_board[row][col]
-            return value
-        except Exception:
-            return 5
+
+        value = self.game_board[row][col]
+        return value
 
     def set_value(self, row, col, value):
         self.game_board[row][col] = value

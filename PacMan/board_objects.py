@@ -50,7 +50,7 @@ class Entity:
         x += dx
         y += dy
 
-        c = 3
+        c = 1
 
         points = [
             (x + c, y + c),
@@ -59,18 +59,16 @@ class Entity:
             (x + c, y + CELL_SIZE - c)
         ]
         try:
-            colors = [self.screen.get_at((int(a), int(b)))[:-1] in [BACKGROUND_COLOR,
+            colors = [self.screen.get_at((round(a), round(b)))[:-1] in [BACKGROUND_COLOR,
                                                                     MEALS_COLOR] for a, b in points]
         except Exception:
             colors = [False]
-        # for x1, y1 in points:
-        #     pygame.draw.circle(self.screen, 'white', (x1, y1), 2)
-        # print(colors)
+
         if not all(colors):
             self.direction = Directions.STAY
         else:
             if isinstance(self, PacMan):
-                col, row = self.board.get_cords(x, y)
+                row, col = self.board.get_cords(x, y)
                 if self.board.get_value(row, col) == 0:
                     self.board.set_value(row, col, 5)
                     self.control.current_score += 1
