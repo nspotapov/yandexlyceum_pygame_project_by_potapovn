@@ -50,6 +50,8 @@ class GameControl:
         images = pygame.image.load('resources/assets/sprites.png')
         rect = pygame.Rect((0, 0, 8 * CELL_SIZE, CELL_SIZE))
         image = images.subsurface(rect)
+        #todo
+        image.set_colorkey('black')
         self.player = PacMan(self.players, image, collide_groups=[self.walls_group])
         self.all_entities.add(self.player)
         self.players.add(self.player)
@@ -143,7 +145,8 @@ class GameControl:
     def render(self):
         self.walls_group.draw(self.board_screen)
         self.all_entities.draw(self.board_screen)
-        self.all_entities.update()
+        if self.game_state == ProgramState.IN_GAME:
+            self.all_entities.update()
 
     def score_text_render(self):
         text = self.font.render('SCORE', True, FONT_COLOR)

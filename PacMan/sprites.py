@@ -7,13 +7,15 @@ class Directions:
     LEFT = 1
     UP = 2
     DOWN = 3
+    STAY = 4
 
 
 VELOCITIES = {
     Directions.RIGHT: (1, 0),
     Directions.LEFT: (-1, 0),
     Directions.UP: (0, -1),
-    Directions.DOWN: (0, 1)
+    Directions.DOWN: (0, 1),
+    None: (0, 0)
 }
 
 
@@ -42,20 +44,24 @@ class Animated(Entity):
                                 CELL_SIZE, CELL_SIZE))
             image = self.image.subsurface(rect)
             self.images.append(image)
+        self.rect = self.images[0].get_rect()
         self.frames_per_image = 10
         self.current_frame = 0
         self.current_img_state = 0
-        self.velocity = 20
+        self.velocity = 100 / FPS
         self.current_direction = Directions.RIGHT
-        self.next_direction = self.current_direction
+        self.last_direction = None
+        self.next_direction = None
         self.image = self.images[0]
 
     def update(self, *args, **kwargs) -> None:
-        #todo
-        print(self.image.get_rect(), self.current_direction,
-              self.next_direction)
+        if self.can_move(self.next_direction):
+            self.current_direction = self.next_direction
+            self.next_direction = None
+            self.last_direction = None
 
-        if self.can_move():
+        if self.can_move(self.current_direction):
+            self.last_direction = None
             self.current_frame += 1
             if self.current_frame > self.frames_per_image:
                 self.current_frame = 0
@@ -65,26 +71,37 @@ class Animated(Entity):
             index = self.current_direction * 2 + self.current_img_state
             self.image = self.images[index]
 
-            dx, dy = VELOCITIES[self.next_direction]
-            dx, dy = self.velocity * dx, self.velocity * dy
-            self.rect.move(dx, dy)
+            if self.rect.x < -self.rect.w:
+                self.rect.x = BOARD_COLS * CELL_SIZE
+            elif self.rect.x > BOARD_COLS * CELL_SIZE:
+                self.rect.x = -self.rect.w
+
+        print(self.last_direction, self.current_direction, self.next_direction)
 
     def set_direction(self, direction):
         self.next_direction = direction
+        if self.can_move(self.next_direction):
+            self.current_direction = self.next_direction
+            self.next_direction = None
 
     def set_cords_in_board(self, x, y):
         self.rect.x = x * CELL_SIZE
         self.rect.y = y * CELL_SIZE
 
-    def can_move(self):
-        direction = self.next_direction
-        last_rect = self.rect.copy()
+    def can_move(self, direction):
+        if direction is None:
+            return False
         dx, dy = VELOCITIES[direction]
-        _x, _y = last_rect.x, last_rect.y
-        _x += dx * self.velocity
-        _y += dy * self.velocity
-        if any([pygame.sprite.spritecollideany(self, _group) for _group in self.collide_groups]):
-            return True
+
+        dx, dy = self.velocity * dx, self.velocity * dy
+        self.rect = self.rect.move(dx, dy)
+        collide = [bool(pygame.sprite.spritecollideany(self, _group)) for _group in
+                   self.collide_groups]
+        print(collide)
+
+        if any(collide):
+            self.rect = self.rect.move(-dx, -dy)
+            return False
         return True
 
 
