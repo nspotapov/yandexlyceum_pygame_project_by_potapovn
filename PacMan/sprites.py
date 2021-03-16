@@ -1,6 +1,6 @@
 import pygame
 from settings import *
-
+import random
 
 class Directions:
     RIGHT = 0
@@ -8,6 +8,7 @@ class Directions:
     UP = 2
     DOWN = 3
     STAY = 4
+    ALL = [RIGHT, LEFT, UP, DOWN]
 
 
 VELOCITIES = {
@@ -50,7 +51,6 @@ class Animated(Entity):
         self.current_img_state = 0
         self.velocity = 100 / FPS
         self.current_direction = Directions.RIGHT
-        self.last_direction = None
         self.next_direction = None
         self.image = self.images[0]
 
@@ -58,10 +58,8 @@ class Animated(Entity):
         if self.can_move(self.next_direction):
             self.current_direction = self.next_direction
             self.next_direction = None
-            self.last_direction = None
 
         if self.can_move(self.current_direction):
-            self.last_direction = None
             self.current_frame += 1
             if self.current_frame > self.frames_per_image:
                 self.current_frame = 0
@@ -75,8 +73,9 @@ class Animated(Entity):
                 self.rect.x = BOARD_COLS * CELL_SIZE
             elif self.rect.x > BOARD_COLS * CELL_SIZE:
                 self.rect.x = -self.rect.w
-
-        print(self.last_direction, self.current_direction, self.next_direction)
+        else:
+            index = self.current_direction * 2 + 1
+            self.image = self.images[index]
 
     def set_direction(self, direction):
         self.next_direction = direction
@@ -97,20 +96,27 @@ class Animated(Entity):
         self.rect = self.rect.move(dx, dy)
         collide = [bool(pygame.sprite.spritecollideany(self, _group)) for _group in
                    self.collide_groups]
-        print(collide)
 
         if any(collide):
             self.rect = self.rect.move(-dx, -dy)
             return False
         return True
 
+    def set_velocity(self, velocity):
+        self.velocity = velocity / FPS
+
 
 class PacMan(Animated):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.set_cords_in_board(0, 10)
+        self.set_cords_in_board(9, 16)
 
 
 class Ghost(Animated):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+    def update(self, *args, **kwargs) -> None:
+        super().update(*args, **kwargs)
+        if not self.can_move(self.current_direction):
+            self.set_direction(random.choice(Directions.ALL))

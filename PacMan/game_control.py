@@ -3,7 +3,7 @@ from pygame.locals import *
 from settings import *
 from .board_objects import Directions
 from .program_states import ProgramState
-from .sprites import Entity, Animated, PacMan
+from .sprites import Entity, PacMan, Ghost
 
 BLINK_EVENT = pygame.USEREVENT + 1
 
@@ -19,6 +19,10 @@ class GameControl:
         self.ghosts = pygame.sprite.Group()
         self.players = pygame.sprite.Group()
         self.walls_group = pygame.sprite.Group()
+
+        self.ghosts_objects = []
+        ghost_collide_groups = [self.walls_group,
+                                self.players]
 
         self.current_score = 0
         self.maximum_score = 0
@@ -50,11 +54,45 @@ class GameControl:
         images = pygame.image.load('resources/assets/sprites.png')
         rect = pygame.Rect((0, 0, 8 * CELL_SIZE, CELL_SIZE))
         image = images.subsurface(rect)
-        #todo
         image.set_colorkey('black')
-        self.player = PacMan(self.players, image, collide_groups=[self.walls_group])
+        self.player = PacMan(self.players, image, collide_groups=[self.walls_group, self.ghosts])
         self.all_entities.add(self.player)
         self.players.add(self.player)
+
+        rect = pygame.Rect((0, CELL_SIZE, 8 * CELL_SIZE, CELL_SIZE))
+        image = images.subsurface(rect)
+        image.set_colorkey('black')
+        self.blinky = Ghost(self.ghosts, image, collide_groups=ghost_collide_groups)
+        self.all_entities.add(self.blinky)
+        self.ghosts.add(self.blinky)
+
+        rect = pygame.Rect((0, 2 * CELL_SIZE, 8 * CELL_SIZE, CELL_SIZE))
+        image = images.subsurface(rect)
+        image.set_colorkey('black')
+        self.pinky = Ghost(self.ghosts, image, collide_groups=ghost_collide_groups)
+        self.all_entities.add(self.pinky)
+        self.ghosts.add(self.pinky)
+
+        rect = pygame.Rect((0, 3 * CELL_SIZE, 8 * CELL_SIZE, CELL_SIZE))
+        image = images.subsurface(rect)
+        image.set_colorkey('black')
+        self.inky = Ghost(self.ghosts, image, collide_groups=ghost_collide_groups)
+        self.all_entities.add(self.inky)
+        self.ghosts.add(self.inky)
+
+        rect = pygame.Rect((0, 4 * CELL_SIZE, 8 * CELL_SIZE, CELL_SIZE))
+        image = images.subsurface(rect)
+        image.set_colorkey('black')
+        self.clyde = Ghost(self.ghosts, image, collide_groups=ghost_collide_groups)
+        self.all_entities.add(self.clyde)
+        self.ghosts.add(self.clyde)
+
+        self.ghosts_objects = [
+            self.clyde,
+            self.inky,
+            self.pinky,
+            self.blinky,
+        ]
 
         for i in range(len(INITIAL_GAME_BOARD)):
             for j in range(len(INITIAL_GAME_BOARD[0])):
@@ -68,6 +106,9 @@ class GameControl:
                     temp_sprite = Entity(self.walls_group, image)
                     temp_sprite.rect.x = j * CELL_SIZE
                     temp_sprite.rect.y = i * CELL_SIZE
+                elif value == 3:
+                    ghost = self.ghosts_objects.pop()
+                    ghost.set_cords_in_board(j, i)
 
     def run(self):
         """Главный цикл игры"""
