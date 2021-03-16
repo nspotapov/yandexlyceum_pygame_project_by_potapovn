@@ -50,7 +50,7 @@ class GameControl:
         images = pygame.image.load('resources/assets/sprites.png')
         rect = pygame.Rect((0, 0, 8 * CELL_SIZE, CELL_SIZE))
         image = images.subsurface(rect)
-        self.player = PacMan(self.players, image)
+        self.player = PacMan(self.players, image, collide_groups=[self.walls_group])
         self.all_entities.add(self.player)
         self.players.add(self.player)
 
