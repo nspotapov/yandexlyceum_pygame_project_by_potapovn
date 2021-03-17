@@ -21,8 +21,10 @@ class GameControl:
         self.walls_group = pygame.sprite.Group()
 
         self.ghosts_objects = []
-        ghost_collide_groups = [self.walls_group,
-                                self.players]
+        ghost_collide_groups = [
+                                self.walls_group,
+                                self.players,
+                                ]
 
         self.current_score = 0
         self.maximum_score = 0

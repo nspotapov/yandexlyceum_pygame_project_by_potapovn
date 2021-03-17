@@ -2,6 +2,7 @@ import pygame
 from settings import *
 import random
 
+
 class Directions:
     RIGHT = 0
     LEFT = 1
@@ -49,12 +50,13 @@ class Animated(Entity):
         self.frames_per_image = 10
         self.current_frame = 0
         self.current_img_state = 0
-        self.velocity = 100 / FPS
+        self.velocity = 1
         self.current_direction = Directions.RIGHT
         self.next_direction = None
         self.image = self.images[0]
 
     def update(self, *args, **kwargs) -> None:
+
         if self.can_move(self.next_direction):
             self.current_direction = self.next_direction
             self.next_direction = None
@@ -119,4 +121,6 @@ class Ghost(Animated):
     def update(self, *args, **kwargs) -> None:
         super().update(*args, **kwargs)
         if not self.can_move(self.current_direction):
+            self.set_direction(random.choice(Directions.ALL))
+        elif random.random() < 0.1:
             self.set_direction(random.choice(Directions.ALL))
