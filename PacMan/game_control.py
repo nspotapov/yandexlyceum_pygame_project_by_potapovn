@@ -29,7 +29,6 @@ class GameControl:
         self.current_score = 0
         self.maximum_score = 0
         self.CELL_SIZE = CELL_SIZE
-
         self.WIDTH = BOARD_COLS * self.CELL_SIZE
         self.HEIGHT = BOARD_ROWS * self.CELL_SIZE \
                       + 2 * FONT_SIZE + self.CELL_SIZE \

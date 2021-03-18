@@ -130,7 +130,8 @@ class PacMan(Animated):
 
     def update(self, *args, **kwargs) -> None:
         super().update(*args, **kwargs)
-        # print(self.get_all_available_directions())
+        print(self.get_all_available_directions(),
+              self.rect)
 
 
 class Ghost(Animated):
@@ -146,3 +147,14 @@ class Ghost(Animated):
             if current_available_directions != self.last_available_directions:
                 self.last_available_directions = current_available_directions
                 self.set_direction(random.choice(current_available_directions))
+
+    def get_all_available_directions(self):
+        directions = super().get_all_available_directions()
+        if self.rect.x <= -CELL_SIZE or \
+                self.rect.x >= BOARD_COLS * CELL_SIZE:
+            try:
+                directions.remove(Directions.UP)
+                directions.remove(Directions.DOWN)
+            except Exception:
+                pass
+        return directions
