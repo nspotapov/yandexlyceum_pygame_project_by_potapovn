@@ -11,6 +11,13 @@ class Directions:
     STAY = 4
     ALL = [RIGHT, LEFT, UP, DOWN]
 
+    def get_negative(self, direction):
+        neg = {Directions.RIGHT: Directions.LEFT,
+               Directions.LEFT: Directions.RIGHT,
+               Directions.DOWN: Directions.UP,
+               Directions.UP: Directions.DOWN, }
+        return neg[direction]
+
 
 VELOCITIES = {
     Directions.RIGHT: (1, 0),
@@ -62,6 +69,8 @@ class Animated(Entity):
             self.next_direction = None
 
         if self.can_move(self.current_direction):
+            dx, dy = VELOCITIES[self.current_direction]
+            self.rect = self.rect.move(dx, dy)
             self.current_frame += 1
             if self.current_frame > self.frames_per_image:
                 self.current_frame = 0
@@ -98,11 +107,17 @@ class Animated(Entity):
         self.rect = self.rect.move(dx, dy)
         collide = [bool(pygame.sprite.spritecollideany(self, _group)) for _group in
                    self.collide_groups]
-
+        self.rect = self.rect.move(-dx, -dy)
         if any(collide):
-            self.rect = self.rect.move(-dx, -dy)
             return False
         return True
+
+    def get_all_available_directions(self):
+        available_directions = []
+        for direction in Directions.ALL:
+            if self.can_move(direction):
+                available_directions.append(direction)
+        return available_directions
 
     def set_velocity(self, velocity):
         self.velocity = velocity / FPS
@@ -113,14 +128,21 @@ class PacMan(Animated):
         super().__init__(*args, **kwargs)
         self.set_cords_in_board(9, 16)
 
+    def update(self, *args, **kwargs) -> None:
+        super().update(*args, **kwargs)
+        # print(self.get_all_available_directions())
+
 
 class Ghost(Animated):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.last_available_directions = self.get_all_available_directions()
 
     def update(self, *args, **kwargs) -> None:
         super().update(*args, **kwargs)
-        if not self.can_move(self.current_direction):
-            self.set_direction(random.choice(Directions.ALL))
-        elif random.random() < 0.1:
-            self.set_direction(random.choice(Directions.ALL))
+
+        current_available_directions = self.get_all_available_directions()
+        if current_available_directions:
+            if current_available_directions != self.last_available_directions:
+                self.last_available_directions = current_available_directions
+                self.set_direction(random.choice(current_available_directions))

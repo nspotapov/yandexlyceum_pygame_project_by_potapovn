@@ -109,8 +109,9 @@ class GameControl:
                     temp_sprite.rect.x = j * CELL_SIZE
                     temp_sprite.rect.y = i * CELL_SIZE
                 elif value == 3:
-                    ghost = self.ghosts_objects.pop()
-                    ghost.set_cords_in_board(j, i)
+                    if self.ghosts_objects:
+                        ghost = self.ghosts_objects.pop()
+                        ghost.set_cords_in_board(j, i)
 
     def run(self):
         """Главный цикл игры"""
