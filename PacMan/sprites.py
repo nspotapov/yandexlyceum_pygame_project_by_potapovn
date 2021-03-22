@@ -121,9 +121,11 @@ class Animated(Entity):
 
         dx, dy = self.velocity * dx, self.velocity * dy
         self.rect = self.rect.move(dx, dy)
-        collide = [bool(pygame.sprite.spritecollideany(self, _group))
+
+        collide = [pygame.sprite.spritecollideany(self, _group)
                    for _group in
                    self.collide_groups]
+
         self.rect = self.rect.move(-dx, -dy)
         if any(collide):
             return False
@@ -163,12 +165,10 @@ class PacMan(Animated):
 
 
 class Ghost(Animated):
-    def __init__(self, *args, ghosts_objects=None, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.last_available_directions = self.get_all_available_directions()
-        self.ghosts_objects = ghosts_objects
-        if self.ghosts_objects is None:
-            self.ghosts_objects = []
+        self.ghosts_objects = []
 
     def update(self, *args, **kwargs) -> None:
         super().update(*args, **kwargs)
@@ -178,6 +178,25 @@ class Ghost(Animated):
             if current_available_directions != self.last_available_directions:
                 self.last_available_directions = current_available_directions
                 self.set_direction(random.choice(current_available_directions))
+
+    def can_move(self, direction):
+        if direction is None:
+            return False
+        dx, dy = VELOCITIES[direction]
+
+        dx, dy = self.velocity * dx, self.velocity * dy
+        self.rect = self.rect.move(dx, dy)
+
+        collide = [pygame.sprite.spritecollideany(self, _group)
+                   for _group in
+                   self.collide_groups]
+
+        ghost_collide = [pygame.sprite.collide_mask(self, ghost) for ghost in self.ghosts_objects]
+
+        self.rect = self.rect.move(-dx, -dy)
+        if any(collide) or any(ghost_collide):
+            return False
+        return True
 
     def get_all_available_directions(self):
         directions = super().get_all_available_directions()
@@ -189,3 +208,8 @@ class Ghost(Animated):
             except Exception:
                 pass
         return directions
+
+    def set_ghosts_objects(self, ghost_objects):
+        self.ghosts_objects = ghost_objects
+        if self in self.ghosts_objects:
+            self.ghosts_objects.remove(self)

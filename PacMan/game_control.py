@@ -23,6 +23,7 @@ class GameControl:
         self.meals_obj_group = []
 
         self.ghosts_objects = []
+
         ghost_collide_groups = [
             self.walls_group,
             self.players,
@@ -67,7 +68,8 @@ class GameControl:
 
         rect = pygame.Rect((0, CELL_SIZE, 8 * CELL_SIZE, CELL_SIZE))
         image = images.subsurface(rect)
-        self.blinky = Ghost(self.ghosts, image, collide_groups=ghost_collide_groups)
+        self.blinky = Ghost(self.ghosts, image,
+                            collide_groups=ghost_collide_groups)
         self.all_entities.add(self.blinky)
         self.ghosts.add(self.blinky)
         self.blinky.set_cords_in_board(9, 10)
@@ -100,6 +102,9 @@ class GameControl:
             self.pinky,
             self.blinky,
         ]
+
+        for ghost in self.ghosts_objects:
+            ghost.set_ghosts_objects(self.ghosts_objects)
 
         for i in range(len(INITIAL_GAME_BOARD)):
             for j in range(len(INITIAL_GAME_BOARD[0])):
@@ -205,7 +210,8 @@ class GameControl:
         if self.game_state == ProgramState.IN_GAME:
             self.all_entities.update()
             self.current_score = self.player.get_current_score()
-
+            self.maximum_score = max(self.current_score,
+                                     self.maximum_score)
     def score_text_render(self):
         text = self.font.render('SCORE', True, FONT_COLOR)
         self.screen.blit(text, (0, SPACE_BETWEEN))
