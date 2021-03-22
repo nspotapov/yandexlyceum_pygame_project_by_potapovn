@@ -70,18 +70,21 @@ class GameControl:
         self.blinky = Ghost(self.ghosts, image, collide_groups=ghost_collide_groups)
         self.all_entities.add(self.blinky)
         self.ghosts.add(self.blinky)
+        self.blinky.set_cords_in_board(9, 10)
 
         rect = pygame.Rect((0, 2 * CELL_SIZE, 8 * CELL_SIZE, CELL_SIZE))
         image = images.subsurface(rect)
         self.pinky = Ghost(self.ghosts, image, collide_groups=ghost_collide_groups)
         self.all_entities.add(self.pinky)
         self.ghosts.add(self.pinky)
+        self.pinky.set_cords_in_board(9, 11)
 
         rect = pygame.Rect((0, 3 * CELL_SIZE, 8 * CELL_SIZE, CELL_SIZE))
         image = images.subsurface(rect)
         self.inky = Ghost(self.ghosts, image, collide_groups=ghost_collide_groups)
         self.all_entities.add(self.inky)
         self.ghosts.add(self.inky)
+        self.inky.set_cords_in_board(9, 12)
 
         rect = pygame.Rect((0, 4 * CELL_SIZE, 8 * CELL_SIZE, CELL_SIZE))
         image = images.subsurface(rect)
@@ -89,6 +92,7 @@ class GameControl:
                            collide_groups=ghost_collide_groups)
         self.all_entities.add(self.clyde)
         self.ghosts.add(self.clyde)
+        self.clyde.set_cords_in_board(9, 8)
 
         self.ghosts_objects = [
             self.clyde,
@@ -114,7 +118,7 @@ class GameControl:
                         ghost = self.ghosts_objects.pop()
                         ghost.set_cords_in_board(j, i)
 
-                if value in [0, 3]:
+                if value == 0:
                     meal = TastyPoint(self.meals_group,
                                       collide_groups=[self.players])
                     meal.set_cords_in_board(j, i)

@@ -121,7 +121,8 @@ class Animated(Entity):
 
         dx, dy = self.velocity * dx, self.velocity * dy
         self.rect = self.rect.move(dx, dy)
-        collide = [bool(pygame.sprite.spritecollideany(self, _group)) for _group in
+        collide = [bool(pygame.sprite.spritecollideany(self, _group))
+                   for _group in
                    self.collide_groups]
         self.rect = self.rect.move(-dx, -dy)
         if any(collide):
@@ -162,9 +163,12 @@ class PacMan(Animated):
 
 
 class Ghost(Animated):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, ghosts_objects=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.last_available_directions = self.get_all_available_directions()
+        self.ghosts_objects = ghosts_objects
+        if self.ghosts_objects is None:
+            self.ghosts_objects = []
 
     def update(self, *args, **kwargs) -> None:
         super().update(*args, **kwargs)
