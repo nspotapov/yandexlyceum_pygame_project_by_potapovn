@@ -29,15 +29,34 @@ VELOCITIES = {
 
 
 class Entity(pygame.sprite.Sprite):
-    def __init__(self, group, image=None):
+    def __init__(self, group, image=None, collide_groups=None):
         super().__init__(group)
         if image is None:
             image = pygame.surface.Surface((CELL_SIZE,
                                             CELL_SIZE))
         self.image = image
+        self.collide_groups = collide_groups
         self.rect = self.image.get_rect()
         self.rect.x = 0
         self.rect.y = 0
+
+    def set_cords_in_board(self, x, y):
+        self.rect.x = x * CELL_SIZE
+        self.rect.y = y * CELL_SIZE
+
+
+class TastyPoint(Entity):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        image = pygame.surface.Surface((CELL_SIZE,
+                                        CELL_SIZE))
+        pygame.draw.circle(image, MEALS_COLOR, (CELL_SIZE / 2,
+                                                CELL_SIZE / 2),
+                           CELL_SIZE / 6)
+        image.set_colorkey('black')
+
+        self.image = image
+        self.mask = pygame.mask.from_surface(self.image)
 
 
 class Animated(Entity):
@@ -53,6 +72,7 @@ class Animated(Entity):
                                 CELL_SIZE, CELL_SIZE))
             image = self.image.subsurface(rect)
             self.images.append(image)
+        self.mask = pygame.mask.from_surface(self.images[0])
         self.rect = self.images[0].get_rect()
         self.frames_per_image = 10
         self.current_frame = 0
@@ -94,10 +114,6 @@ class Animated(Entity):
             self.current_direction = self.next_direction
             self.next_direction = None
 
-    def set_cords_in_board(self, x, y):
-        self.rect.x = x * CELL_SIZE
-        self.rect.y = y * CELL_SIZE
-
     def can_move(self, direction):
         if direction is None:
             return False
@@ -124,14 +140,25 @@ class Animated(Entity):
 
 
 class PacMan(Animated):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, meals_group=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.set_cords_in_board(9, 16)
+        self.meals_group = meals_group
+        self.current_score = 0
 
     def update(self, *args, **kwargs) -> None:
         super().update(*args, **kwargs)
-        print(self.get_all_available_directions(),
-              self.rect)
+        if self.meals_group:
+            collided_sprites = [x for x in self.meals_group if pygame.sprite.collide_mask(self, x)]
+
+            for collide in collided_sprites:
+                if collide is not None:
+                    self.meals_group.remove(collide)
+                    collide.kill()
+                    self.current_score += 1
+
+    def get_current_score(self):
+        return self.current_score
 
 
 class Ghost(Animated):
