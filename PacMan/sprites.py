@@ -81,6 +81,8 @@ class Animated(Entity):
         self.current_direction = Directions.RIGHT
         self.next_direction = None
         self.image = self.images[0]
+        self.ghosts_objects = []
+        self.current_collide = []
 
     def update(self, *args, **kwargs) -> None:
 
@@ -122,12 +124,12 @@ class Animated(Entity):
         dx, dy = self.velocity * dx, self.velocity * dy
         self.rect = self.rect.move(dx, dy)
 
-        collide = [pygame.sprite.spritecollideany(self, _group)
-                   for _group in
-                   self.collide_groups]
+        self.current_collide = [pygame.sprite.spritecollideany(self, _group)
+                                for _group in
+                                self.collide_groups]
 
         self.rect = self.rect.move(-dx, -dy)
-        if any(collide):
+        if any(self.current_collide):
             return False
         return True
 
@@ -148,11 +150,13 @@ class PacMan(Animated):
         self.set_cords_in_board(9, 16)
         self.meals_group = meals_group
         self.current_score = 0
+        self.is_alive = True
 
     def update(self, *args, **kwargs) -> None:
         super().update(*args, **kwargs)
         if self.meals_group:
-            collided_sprites = [x for x in self.meals_group if pygame.sprite.collide_mask(self, x)]
+            collided_sprites = [x for x in self.meals_group
+                                if pygame.sprite.collide_mask(self, x)]
 
             for collide in collided_sprites:
                 if collide is not None:
@@ -160,8 +164,14 @@ class PacMan(Animated):
                     collide.kill()
                     self.current_score += 1
 
+        if any([isinstance(x, Ghost) for x in self.current_collide]):
+            self.is_alive = False
+
     def get_current_score(self):
         return self.current_score
+
+    def death_animate(self):
+        pass
 
 
 class Ghost(Animated):
@@ -191,7 +201,8 @@ class Ghost(Animated):
                    for _group in
                    self.collide_groups]
 
-        ghost_collide = [pygame.sprite.collide_mask(self, ghost) for ghost in self.ghosts_objects]
+        ghost_collide = [pygame.sprite.collide_mask(self, ghost)
+                         for ghost in self.ghosts_objects]
 
         self.rect = self.rect.move(-dx, -dy)
         if any(collide) or any(ghost_collide):

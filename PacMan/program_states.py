@@ -8,3 +8,5 @@ class ProgramState(Enum):
     GAME_OVER = auto()
     PAUSE = auto()
     EXIT = auto()
+    WIN = auto()
+    DEATH = auto()

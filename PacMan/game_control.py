@@ -76,14 +76,16 @@ class GameControl:
 
         rect = pygame.Rect((0, 2 * CELL_SIZE, 8 * CELL_SIZE, CELL_SIZE))
         image = images.subsurface(rect)
-        self.pinky = Ghost(self.ghosts, image, collide_groups=ghost_collide_groups)
+        self.pinky = Ghost(self.ghosts, image,
+                           collide_groups=ghost_collide_groups)
         self.all_entities.add(self.pinky)
         self.ghosts.add(self.pinky)
         self.pinky.set_cords_in_board(9, 11)
 
         rect = pygame.Rect((0, 3 * CELL_SIZE, 8 * CELL_SIZE, CELL_SIZE))
         image = images.subsurface(rect)
-        self.inky = Ghost(self.ghosts, image, collide_groups=ghost_collide_groups)
+        self.inky = Ghost(self.ghosts, image,
+                          collide_groups=ghost_collide_groups)
         self.all_entities.add(self.inky)
         self.ghosts.add(self.inky)
         self.inky.set_cords_in_board(9, 12)
@@ -104,7 +106,7 @@ class GameControl:
         ]
 
         for ghost in self.ghosts_objects:
-            ghost.set_ghosts_objects(self.ghosts_objects)
+            ghost.set_ghosts_objects(self.ghosts_objects.copy())
 
         for i in range(len(INITIAL_GAME_BOARD)):
             for j in range(len(INITIAL_GAME_BOARD[0])):
@@ -182,6 +184,7 @@ class GameControl:
                 self.screen.blit(text, (self.WIDTH / 2 - text.get_width() / 2,
                                         self.HEIGHT / 2 + SPACE_BETWEEN))
 
+
             elif self.game_state == ProgramState.PAUSE:
                 pygame.draw.rect(self.screen, COLOR_GREY,
                                  (0, self.HEIGHT / 2 - 1.5 * FONT_SIZE - 2 * SPACE_BETWEEN,
@@ -199,19 +202,26 @@ class GameControl:
                 self.screen.blit(text, (self.WIDTH / 2 - text.get_width() / 2,
                                         self.HEIGHT / 2 + 0.5 * FONT_SIZE + SPACE_BETWEEN))
 
+            elif self.game_state == ProgramState.IN_GAME:
+                self.all_entities.update()
+                self.current_score = self.player.get_current_score()
+                self.maximum_score = max(self.current_score,
+                                         self.maximum_score)
+                if not self.player.is_alive:
+                    self.game_state = ProgramState.GAME_OVER
+            elif self.game_state == ProgramState.GAME_OVER:
+                print('GAME OVER')
+
             pygame.display.flip()
             self.clock.tick(FPS)
+
         pygame.quit()
 
     def render(self):
         self.walls_group.draw(self.board_screen)
         self.meals_group.draw(self.board_screen)
         self.all_entities.draw(self.board_screen)
-        if self.game_state == ProgramState.IN_GAME:
-            self.all_entities.update()
-            self.current_score = self.player.get_current_score()
-            self.maximum_score = max(self.current_score,
-                                     self.maximum_score)
+
     def score_text_render(self):
         text = self.font.render('SCORE', True, FONT_COLOR)
         self.screen.blit(text, (0, SPACE_BETWEEN))
