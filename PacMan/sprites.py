@@ -3,6 +3,12 @@ from settings import *
 import random
 
 
+def get_distance(pos1, pos2):
+    x1, y1 = pos1
+    x2, y2 = pos2
+    return ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
+
+
 class Directions:
     RIGHT = 0
     LEFT = 1
@@ -43,6 +49,11 @@ class Entity(pygame.sprite.Sprite):
     def set_cords_in_board(self, x, y):
         self.rect.x = x * CELL_SIZE
         self.rect.y = y * CELL_SIZE
+
+    def get_pos(self, centre=False):
+        if centre:
+            return self.rect.x - self.rect.w / 2, self.rect.y - self.rect.h / 2
+        return self.rect.x, self.rect.y
 
 
 class TastyPoint(Entity):
@@ -119,6 +130,12 @@ class Animated(Entity):
     def can_move(self, direction):
         if direction is None:
             return False
+        if self.rect.x not in range(0, BOARD_COLS * CELL_SIZE):
+            if direction in [
+                Directions.UP,
+                Directions.DOWN
+            ]:
+                return False
         dx, dy = VELOCITIES[direction]
 
         dx, dy = self.velocity * dx, self.velocity * dy
@@ -138,6 +155,7 @@ class Animated(Entity):
         for direction in Directions.ALL:
             if self.can_move(direction):
                 available_directions.append(direction)
+
         return available_directions
 
     def set_velocity(self, velocity):
@@ -151,27 +169,49 @@ class PacMan(Animated):
         self.meals_group = meals_group
         self.current_score = 0
         self.is_alive = True
+        self.n = 0
+        self.death_images = None
 
-    def update(self, *args, **kwargs) -> None:
-        super().update(*args, **kwargs)
-        if self.meals_group:
-            collided_sprites = [x for x in self.meals_group
-                                if pygame.sprite.collide_mask(self, x)]
+    def update(self, *args, **kwargs):
+        if self.is_alive:
+            super().update(*args, **kwargs)
+            if self.meals_group:
+                collided_sprites = [x for x in self.meals_group
+                                    if pygame.sprite.collide_mask(self, x)]
 
-            for collide in collided_sprites:
-                if collide is not None:
-                    self.meals_group.remove(collide)
-                    collide.kill()
-                    self.current_score += 1
+                for collide in collided_sprites:
+                    if collide is not None:
+                        self.meals_group.remove(collide)
+                        collide.kill()
+                        self.current_score += 1
 
-        if any([isinstance(x, Ghost) for x in self.current_collide]):
-            self.is_alive = False
+            if any([isinstance(x, Ghost) for x in self.current_collide]):
+                self.is_alive = False
 
     def get_current_score(self):
         return self.current_score
 
     def death_animate(self):
-        pass
+        self.current_frame += 1
+        if self.current_frame > self.frames_per_image:
+            self.current_frame = 0
+            self.current_img_state += 1
+            self.current_img_state %= 12
+        self.image = self.death_images[self.current_img_state]
+        return 11 - self.current_img_state
+
+    def set_death_sprites(self, death_sprites):
+        img_count = death_sprites.get_rect().w // CELL_SIZE
+        self.death_images = []
+
+        for i in range(img_count):
+            rect = pygame.Rect((i * CELL_SIZE, 0,
+                                CELL_SIZE, CELL_SIZE))
+            image = death_sprites.subsurface(rect)
+            self.death_images.append(image)
+
+    def set_alive(self, alive):
+        self.is_alive = alive
 
 
 class Ghost(Animated):
@@ -179,15 +219,38 @@ class Ghost(Animated):
         super().__init__(*args, **kwargs)
         self.last_available_directions = self.get_all_available_directions()
         self.ghosts_objects = []
+        self.pacman_object = None
+        self.pacman_detection_distance = CELL_SIZE * 9
 
     def update(self, *args, **kwargs) -> None:
         super().update(*args, **kwargs)
+
+        if get_distance(self.get_pos(centre=True),
+                        self.pacman_object.get_pos(centre=True)) <= CELL_SIZE * 1.01:
+            self.pacman_object.set_alive(False)
 
         current_available_directions = self.get_all_available_directions()
         if current_available_directions:
             if current_available_directions != self.last_available_directions:
                 self.last_available_directions = current_available_directions
-                self.set_direction(random.choice(current_available_directions))
+
+                if self.is_pacman_is_near():
+                    velocities_for_directions = {
+                        direction: VELOCITIES[direction]
+                        for direction in current_available_directions
+                    }
+                    variants = {}
+                    for key, dv in velocities_for_directions.items():
+                        dx, dy = dv
+                        x, y = self.get_pos()
+                        dx = dx * self.velocity
+                        dy = dy * self.velocity
+                        variants[key] = get_distance((x + dx, y + dy),
+                                                     self.pacman_object.get_pos())
+                    direction = min(variants, key=lambda x: variants[x])
+                    self.set_direction(direction)
+                else:
+                    self.set_direction(random.choice(current_available_directions))
 
     def can_move(self, direction):
         if direction is None:
@@ -209,18 +272,26 @@ class Ghost(Animated):
             return False
         return True
 
-    def get_all_available_directions(self):
-        directions = super().get_all_available_directions()
-        if self.rect.x <= -CELL_SIZE or \
-                self.rect.x >= BOARD_COLS * CELL_SIZE:
-            try:
-                directions.remove(Directions.UP)
-                directions.remove(Directions.DOWN)
-            except Exception:
-                pass
-        return directions
-
     def set_ghosts_objects(self, ghost_objects):
         self.ghosts_objects = ghost_objects
         if self in self.ghosts_objects:
             self.ghosts_objects.remove(self)
+
+    def set_pacman_object(self, pacman_object):
+        self.pacman_object = pacman_object
+
+    def get_all_available_directions(self):
+        dirs = super().get_all_available_directions()
+        if self.rect.x not in range(0, BOARD_COLS * CELL_SIZE):
+            if Directions.UP in dirs:
+                dirs.remove(Directions.UP)
+            if Directions.DOWN in dirs:
+                dirs.remove(Directions.DOWN)
+        return dirs
+
+    def is_pacman_is_near(self):
+        my_pos = self.get_pos()
+        pacman_pos = self.pacman_object.get_pos()
+        if get_distance(my_pos, pacman_pos) < self.pacman_detection_distance:
+            return True
+        return False

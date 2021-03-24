@@ -58,11 +58,15 @@ class GameControl:
         images = pygame.image.load('resources/assets/sprites.png')
         images.set_colorkey('black')
 
+        pacman_death_sprites = pygame.image.load('resources/assets/pacman_death.png')
+        pacman_death_sprites.set_colorkey('black')
+
         rect = pygame.Rect((0, 0, 8 * CELL_SIZE, CELL_SIZE))
         image = images.subsurface(rect)
         self.player = PacMan(self.players, image,
                              collide_groups=[self.walls_group, self.ghosts],
                              meals_group=self.meals_obj_group)
+        self.player.set_death_sprites(pacman_death_sprites)
         self.all_entities.add(self.player)
         self.players.add(self.player)
 
@@ -107,6 +111,7 @@ class GameControl:
 
         for ghost in self.ghosts_objects:
             ghost.set_ghosts_objects(self.ghosts_objects.copy())
+            ghost.set_pacman_object(self.player)
 
         for i in range(len(INITIAL_GAME_BOARD)):
             for j in range(len(INITIAL_GAME_BOARD[0])):
@@ -167,6 +172,10 @@ class GameControl:
                     if event.type == pygame.KEYDOWN:
                         self.game_state = ProgramState.IN_GAME
 
+                if self.game_state == ProgramState.GAME_OVER:
+                    if event.type == pygame.KEYDOWN:
+                        self.replay()
+
             self.screen.fill(BACKGROUND_COLOR)
             self.score_text_render()
             self.render()
@@ -183,7 +192,6 @@ class GameControl:
                 text = self.font.render('TO START', True, font_color)
                 self.screen.blit(text, (self.WIDTH / 2 - text.get_width() / 2,
                                         self.HEIGHT / 2 + SPACE_BETWEEN))
-
 
             elif self.game_state == ProgramState.PAUSE:
                 pygame.draw.rect(self.screen, COLOR_GREY,
@@ -207,10 +215,18 @@ class GameControl:
                 self.current_score = self.player.get_current_score()
                 self.maximum_score = max(self.current_score,
                                          self.maximum_score)
+
                 if not self.player.is_alive:
+                    self.game_state = ProgramState.DEATH
+
+            elif self.game_state == ProgramState.DEATH:
+                state = self.player.death_animate()
+                if not state:
                     self.game_state = ProgramState.GAME_OVER
+
             elif self.game_state == ProgramState.GAME_OVER:
-                print('GAME OVER')
+                # print(self.game_state)
+                pass
 
             pygame.display.flip()
             self.clock.tick(FPS)
@@ -237,3 +253,102 @@ class GameControl:
                                      True, FONT_COLOR)
         self.screen.blit(max_score, (self.WIDTH - max_score.get_width(),
                                      2 * SPACE_BETWEEN + FONT_SIZE))
+
+    def replay(self):
+
+        self.game_state = ProgramState.START
+
+        self.all_entities.empty()
+        self.ghosts.empty()
+        self.players.empty()
+        self.meals_group.empty()
+        self.meals_obj_group.clear()
+        self.ghosts_objects.clear()
+        self.current_score = 0
+
+        ghost_collide_groups = [
+            self.walls_group,
+            self.players,
+        ]
+
+        images = pygame.image.load('resources/assets/sprites.png')
+        images.set_colorkey('black')
+
+        pacman_death_sprites = pygame.image.load('resources/assets/pacman_death.png')
+        pacman_death_sprites.set_colorkey('black')
+
+        rect = pygame.Rect((0, 0, 8 * CELL_SIZE, CELL_SIZE))
+        image = images.subsurface(rect)
+        self.player = PacMan(self.players, image,
+                             collide_groups=[self.walls_group, self.ghosts],
+                             meals_group=self.meals_obj_group)
+        self.player.set_death_sprites(pacman_death_sprites)
+        self.all_entities.add(self.player)
+        self.players.add(self.player)
+
+        rect = pygame.Rect((0, CELL_SIZE, 8 * CELL_SIZE, CELL_SIZE))
+        image = images.subsurface(rect)
+        self.blinky = Ghost(self.ghosts, image,
+                            collide_groups=ghost_collide_groups)
+        self.all_entities.add(self.blinky)
+        self.ghosts.add(self.blinky)
+        self.blinky.set_cords_in_board(9, 10)
+
+        rect = pygame.Rect((0, 2 * CELL_SIZE, 8 * CELL_SIZE, CELL_SIZE))
+        image = images.subsurface(rect)
+        self.pinky = Ghost(self.ghosts, image,
+                           collide_groups=ghost_collide_groups)
+        self.all_entities.add(self.pinky)
+        self.ghosts.add(self.pinky)
+        self.pinky.set_cords_in_board(9, 11)
+
+        rect = pygame.Rect((0, 3 * CELL_SIZE, 8 * CELL_SIZE, CELL_SIZE))
+        image = images.subsurface(rect)
+        self.inky = Ghost(self.ghosts, image,
+                          collide_groups=ghost_collide_groups)
+        self.all_entities.add(self.inky)
+        self.ghosts.add(self.inky)
+        self.inky.set_cords_in_board(9, 12)
+
+        rect = pygame.Rect((0, 4 * CELL_SIZE, 8 * CELL_SIZE, CELL_SIZE))
+        image = images.subsurface(rect)
+        self.clyde = Ghost(self.ghosts, image,
+                           collide_groups=ghost_collide_groups)
+        self.all_entities.add(self.clyde)
+        self.ghosts.add(self.clyde)
+        self.clyde.set_cords_in_board(9, 8)
+
+        self.ghosts_objects = [
+            self.clyde,
+            self.inky,
+            self.pinky,
+            self.blinky,
+        ]
+
+        for ghost in self.ghosts_objects:
+            ghost.set_ghosts_objects(self.ghosts_objects.copy())
+            ghost.set_pacman_object(self.player)
+
+        for i in range(len(INITIAL_GAME_BOARD)):
+            for j in range(len(INITIAL_GAME_BOARD[0])):
+                value = INITIAL_GAME_BOARD[i][j]
+                image = pygame.surface.Surface((CELL_SIZE,
+                                                CELL_SIZE))
+                if value == 1:
+                    pygame.draw.rect(image, WALLS_COLOR,
+                                     (0, 0, CELL_SIZE, CELL_SIZE))
+
+                    temp_sprite = Entity(self.walls_group, image)
+                    temp_sprite.rect.x = j * CELL_SIZE
+                    temp_sprite.rect.y = i * CELL_SIZE
+                elif value == 3:
+                    if self.ghosts_objects:
+                        ghost = self.ghosts_objects.pop()
+                        ghost.set_cords_in_board(j, i)
+
+                if value == 0:
+                    meal = TastyPoint(self.meals_group,
+                                      collide_groups=[self.players])
+                    meal.set_cords_in_board(j, i)
+                    self.meals_group.add(meal)
+                    self.meals_obj_group.append(meal)
