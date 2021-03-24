@@ -2,7 +2,7 @@ BOARD_ROWS = 23
 BOARD_COLS = 19
 CELL_SIZE = 16
 
-FPS = 100
+FPS = 70
 
 BACKGROUND_COLOR = (0, 0, 0)
 WALLS_COLOR = (66, 96, 255)
@@ -40,3 +40,5 @@ INITIAL_GAME_BOARD = [
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
 ]
+
+MAX_SCORE = sum([x.count(0) for x in INITIAL_GAME_BOARD])

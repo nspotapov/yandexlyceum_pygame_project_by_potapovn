@@ -176,6 +176,10 @@ class GameControl:
                     if event.type == pygame.KEYDOWN:
                         self.replay()
 
+                elif self.game_state == ProgramState.WIN:
+                    if event.type == pygame.KEYDOWN:
+                        self.replay()
+
             self.screen.fill(BACKGROUND_COLOR)
             self.score_text_render()
             self.render()
@@ -216,6 +220,9 @@ class GameControl:
                 self.maximum_score = max(self.current_score,
                                          self.maximum_score)
 
+                if self.current_score == MAX_SCORE:
+                    self.game_state = ProgramState.WIN
+
                 if not self.player.is_alive:
                     self.game_state = ProgramState.DEATH
 
@@ -227,6 +234,23 @@ class GameControl:
             elif self.game_state == ProgramState.GAME_OVER:
                 # print(self.game_state)
                 pass
+
+            elif self.game_state == ProgramState.WIN:
+                pygame.draw.rect(self.screen, COLOR_GREY,
+                                 (0, self.HEIGHT / 2 - 1.5 * FONT_SIZE - 2 * SPACE_BETWEEN,
+                                  self.WIDTH, 3 * FONT_SIZE + 4 * SPACE_BETWEEN))
+
+                text = self.font.render('YOU WIN!', True, font_color)
+                self.screen.blit(text, (self.WIDTH / 2 - text.get_width() / 2,
+                                        self.HEIGHT / 2 - 1.5 * FONT_SIZE - SPACE_BETWEEN))
+
+                text = self.font.render('PRESS ANY KEY', True, FONT_COLOR)
+                self.screen.blit(text, (self.WIDTH / 2 - text.get_width() / 2,
+                                        self.HEIGHT / 2 - 0.5 * FONT_SIZE))
+
+                text = self.font.render('TO RESTART', True, FONT_COLOR)
+                self.screen.blit(text, (self.WIDTH / 2 - text.get_width() / 2,
+                                        self.HEIGHT / 2 + 0.5 * FONT_SIZE + SPACE_BETWEEN))
 
             pygame.display.flip()
             self.clock.tick(FPS)

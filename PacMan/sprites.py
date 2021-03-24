@@ -169,8 +169,8 @@ class PacMan(Animated):
         self.meals_group = meals_group
         self.current_score = 0
         self.is_alive = True
-        self.n = 0
         self.death_images = None
+        self.velocity = 1.9
 
     def update(self, *args, **kwargs):
         if self.is_alive:
@@ -220,7 +220,7 @@ class Ghost(Animated):
         self.last_available_directions = self.get_all_available_directions()
         self.ghosts_objects = []
         self.pacman_object = None
-        self.pacman_detection_distance = CELL_SIZE * 9
+        self.pacman_detection_distance = CELL_SIZE * 5
 
     def update(self, *args, **kwargs) -> None:
         super().update(*args, **kwargs)
