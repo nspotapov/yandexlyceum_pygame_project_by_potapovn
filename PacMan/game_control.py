@@ -159,13 +159,13 @@ class GameControl:
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_ESCAPE:
                             self.game_state = ProgramState.PAUSE
-                        elif event.key == pygame.K_UP:
+                        elif event.key in [pygame.K_UP, pygame.K_w]:
                             self.player.set_direction(Directions.UP)
-                        elif event.key == pygame.K_DOWN:
+                        elif event.key in [pygame.K_DOWN, pygame.K_s]:
                             self.player.set_direction(Directions.DOWN)
-                        elif event.key == pygame.K_LEFT:
+                        elif event.key in [pygame.K_LEFT, pygame.K_a]:
                             self.player.set_direction(Directions.LEFT)
-                        elif event.key == pygame.K_RIGHT:
+                        elif event.key in [pygame.K_RIGHT, pygame.K_d]:
                             self.player.set_direction(Directions.RIGHT)
 
                 elif self.game_state == ProgramState.PAUSE:

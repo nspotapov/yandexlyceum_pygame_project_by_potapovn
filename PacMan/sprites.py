@@ -220,7 +220,7 @@ class Ghost(Animated):
         self.last_available_directions = self.get_all_available_directions()
         self.ghosts_objects = []
         self.pacman_object = None
-        self.pacman_detection_distance = CELL_SIZE * 5
+        self.pacman_detection_distance = CELL_SIZE * 4
 
     def update(self, *args, **kwargs) -> None:
         super().update(*args, **kwargs)
